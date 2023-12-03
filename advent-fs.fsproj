@@ -5,7 +5,7 @@
     <RootNamespace>advent_fs</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="day-1/Day1.fs" />
+    <Compile Include="Day1/Day1.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>
