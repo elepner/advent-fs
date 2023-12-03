@@ -9,4 +9,3 @@
         word + "yay"
     else
         word[1..] + string(word[0]) + "ay"
-        
