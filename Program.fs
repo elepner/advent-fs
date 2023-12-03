@@ -1,11 +1,6 @@
-﻿let toPigLatin (word: string) =
-    let isVowel (c: char) =
-        match c with
-        | 'a' | 'e' | 'i' |'o' |'u'
-        | 'A' | 'E' | 'I' | 'O' | 'U' -> true
-        |_ -> false
-    
-    if isVowel word[0] then
-        word + "yay"
-    else
-        word[1..] + string(word[0]) + "ay"
+﻿
+[<EntryPoint>]
+let main args =
+    let res = (AdventFS.Day1.solve "./Day1/input.txt")
+    printfn "solution is %s" (string res)
+    0
