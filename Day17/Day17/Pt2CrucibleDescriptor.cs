@@ -14,7 +14,6 @@ public class Pt2CrucibleDescriptor(int[][] field) : IVertexDescriptor<CrucibleSt
             var step = DirectionHelpers.GetStep(direction);
             if (direction != input.Direction)
             {
-                
                 var newRow = input.Row + step.Item1 * 4;
                 var newCol = input.Col + step.Item2 * 4;
                 yield return new CrucibleStep(Direction: direction, Penalty: 0, Row: newRow, Col: newCol);
@@ -22,7 +21,7 @@ public class Pt2CrucibleDescriptor(int[][] field) : IVertexDescriptor<CrucibleSt
             }
 
             var newPenalty = input.Penalty + 1;
-            if (newPenalty > 5)
+            if (newPenalty > 6)
             {
                 continue;
             }
@@ -55,7 +54,10 @@ public class Pt2CrucibleDescriptor(int[][] field) : IVertexDescriptor<CrucibleSt
     {
         var (dRow, dCol) = DirectionHelpers.GetStep(DirectionHelpers.Opposite(step.Direction));
         return Enumerable.Range(0, 4)
-            .Select(i => field[step.Row + dRow * i][step.Col + dCol * i]);
+            .Select(i =>
+            {
+                return field[step.Row + dRow * i][step.Col + dCol * i];
+            });
     }
 
     public bool IsDestination(CrucibleStep input)

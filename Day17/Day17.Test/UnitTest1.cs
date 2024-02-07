@@ -66,6 +66,7 @@ public class UnitTest1
     {
         var result = Solution.Solve2(File.ReadAllText("./input.txt"));
         Assert.True(result < 1077);
+        Assert.Equal(1055, result);
     }
 }
 

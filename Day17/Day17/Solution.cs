@@ -9,7 +9,7 @@ public static class Solution
         var surface =
             new PrioritySortedQueue<T>();
         HashSet<T> visited = new HashSet<T>();
-        surface.Enqueue(start, vertexDescriptor.GetCost(start));
+        surface.Enqueue(start, 0);
         while (surface.Count() > 0)
         {
             var (currentNode, currentCost)= surface.Dequeue();
@@ -47,13 +47,13 @@ public static class Solution
     public static int Solve(string inputStr, Action<string>? log = null)
     {
         var input = ParseInput(inputStr);
-        return Dijkstra(new CrucibleDescriptor(input), new CrucibleStep(0, 0, Direction.Right, -1), log) - input[0][0];
+        return Dijkstra(new CrucibleDescriptor(input), new CrucibleStep(0, 0, Direction.Right, -1), log);
     }
 
     public static int Solve2(string inputStr)
     {
         var input = ParseInput(inputStr);
-        return Dijkstra(new Pt2CrucibleDescriptor(input), new (0, 0, Direction.Up, -1), null) - input[0][0];
+        return Dijkstra(new Pt2CrucibleDescriptor(input), new (0, 0, Direction.Up, -1), null);
     }
 
     private static int[][] ParseInput(string inputStr)
