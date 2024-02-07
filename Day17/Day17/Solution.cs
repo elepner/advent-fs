@@ -1,24 +1,18 @@
-﻿namespace Day17;
+﻿using System.Runtime.InteropServices.ComTypes;
+
+namespace Day17;
 
 public static class Solution
 {
     public static int Dijkstra<T>(IVertexDescriptor<T> vertexDescriptor, T start, Action<string>? log) where T : notnull
     {
         var surface =
-            new Dictionary<T, int>();
+            new PrioritySortedQueue<T>();
         HashSet<T> visited = new HashSet<T>();
-        surface.Add(start, vertexDescriptor.GetCost(start));
-        while (surface.Count > 0)
+        surface.Enqueue(start, vertexDescriptor.GetCost(start));
+        while (surface.Count() > 0)
         {
-            var currentKv = surface.MinBy(x => x.Value);
-            
-            // log?.Invoke(string.Join(",", surface.Values));
-            
-            var currentNode = currentKv.Key;
-            var currentCost = currentKv.Value;
-
-            log?.Invoke(currentNode.ToString());
-            surface.Remove(currentNode);
+            var (currentNode, currentCost)= surface.Dequeue();
             visited.Add(currentNode);
             if (vertexDescriptor.IsDestination(currentNode))
             {
@@ -28,20 +22,21 @@ public static class Solution
             var neighbours = vertexDescriptor.GetNeighbours(currentNode).ToArray();
             foreach (var neighbour in neighbours)
             {
-                if(visited.Contains(neighbour)) continue;
+                if (visited.Contains(neighbour)) continue;
 
                 var cost = vertexDescriptor.GetCost(neighbour);
-                
+
                 if (surface.TryGetValue(neighbour, out var existingCost))
                 {
                     if (currentCost + cost < existingCost)
                     {
-                        surface[neighbour] = currentCost + cost;
+                        surface.Enqueue(neighbour, currentCost + cost);
+                        //surface[neighbour] = currentCost + cost;
                     }
                 }
                 else
                 {
-                    surface[neighbour] = currentCost + cost;
+                    surface.Enqueue(neighbour, currentCost + cost);
                 }
             }
         }
@@ -82,7 +77,7 @@ public class CrucibleDescriptor : IVertexDescriptor<CrucibleStep>
         var oppositeOfCurrent = Opposite(input.Direction);
         foreach (var direction in directions)
         {
-            if(direction == oppositeOfCurrent) continue;
+            if (direction == oppositeOfCurrent) continue;
 
             var penalty = direction == input.Direction ? input.Penalty + 1 : 0;
             if (penalty > 2)
@@ -97,7 +92,7 @@ public class CrucibleDescriptor : IVertexDescriptor<CrucibleStep>
                 yield return new CrucibleStep(Direction: direction, Penalty: penalty, Row: newRow, Col: newCol);
             }
         }
-        
+
     }
 
     public int GetCost(CrucibleStep input)
@@ -160,39 +155,60 @@ public interface IVertexDescriptor<T>
 }
 
 
-//public class PriorityQueue<T>
-//{
-//    private readonly SortedDictionary<int, Queue<T>> _dictionary = new();
 
-//    public int Count { get; private set; }
+public class PrioritySortedQueue<T> where T : notnull
+{
+    record ItemHolder(T Element, int Priority);
+    
 
-//    public void Enqueue(T item, int priority)
-//    {
-//        if (!_dictionary.ContainsKey(priority))
-//        {
-//            _dictionary[priority] = new Queue<T>();
-//        }
+    private readonly Dictionary<T, int> _values = new();
 
-//        _dictionary[priority].Enqueue(item);
-//        Count++;
-//    }
+    private readonly SortedSet<ItemHolder> _soredItems = new(new CostComparer<ItemHolder>((a, b) =>
+    {
+        var result = Comparer<int>.Default.Compare(a.Priority, b.Priority);
+        if (result == 0)
+        {
+            return Comparer<int>.Default.Compare(a.GetHashCode(), b.GetHashCode());
+        }
+        return result;
+    }));
 
-//    public T Dequeue()
-//    {
-//        if (Count == 0)
-//        {
-//            throw new InvalidOperationException("Priority queue is empty.");
-//        }
+    public void Enqueue(T el, int priority)
+    {
 
-//        foreach (var queue in _dictionary)
-//        {
-//            if (queue.Value.Count > 0)
-//            {
-//                Count--;
-//                return queue.Value.Dequeue();
-//            }
-//        }
+        if (_values.TryGetValue(el, out var existingValue))
+        {
+            var result = _soredItems.Remove(new ItemHolder(el, existingValue));
+            if (!result)
+            {
+                throw new ArgumentException("Impossible");
+            }
+        }
+        
+        _values[el] = priority;
 
-//        throw new InvalidOperationException("Priority queue is empty.");
-//    }
-//}
+        bool isInserted = _soredItems.Add(new ItemHolder(el, priority));
+        if (!isInserted)
+        {
+            throw new Exception("Impossible");
+        }
+    }
+
+    public (T, int) Dequeue()
+    {
+        var result = _soredItems.First();
+        _soredItems.Remove(result);
+        _values.Remove(result.Element);
+        return (result.Element, result.Priority);
+    }
+
+    public int Count()
+    {
+        return _values.Count;
+    }
+
+    public bool TryGetValue(T key, out int value)
+    {
+        return _values.TryGetValue(key, out value);
+    }
+}
