@@ -46,8 +46,20 @@ public static class Solution
 
     public static int Solve(string inputStr, Action<string>? log = null)
     {
-        var input = inputStr.Trim().Split("\n").Select(x => x.Trim().Select(x => int.Parse(x.ToString())).ToArray()).ToArray();
+        var input = ParseInput(inputStr);
         return Dijkstra(new CrucibleDescriptor(input), new CrucibleStep(0, 0, Direction.Right, -1), log) - input[0][0];
+    }
+
+    public static int Solve2(string inputStr)
+    {
+        var input = ParseInput(inputStr);
+        return Dijkstra(new Pt2CrucibleDescriptor(input), new (0, 0, Direction.Up, -1), null) - input[0][0];
+    }
+
+    private static int[][] ParseInput(string inputStr)
+    {
+        var input = inputStr.Trim().Split("\n").Select(x => x.Trim().Select(x => int.Parse(x.ToString())).ToArray()).ToArray();
+        return input;
     }
 }
 
@@ -62,20 +74,43 @@ public enum Direction
 
 public record CrucibleStep(int Row, int Col, Direction Direction, int Penalty);
 
-public class CrucibleDescriptor : IVertexDescriptor<CrucibleStep>
-{
-    private readonly int[][] _field;
 
-    private readonly Direction[] directions = new Direction[]
-        { Direction.Up, Direction.Down, Direction.Left, Direction.Right };
-    public CrucibleDescriptor(int[][] field)
+public static class DirectionHelpers
+{
+    public static readonly Direction[] Directions = [Direction.Up, Direction.Down, Direction.Left, Direction.Right];
+    public static (int, int) GetStep(Direction direction)
     {
-        _field = field;
+        return direction switch
+        {
+            Direction.Up => (-1, 0),
+            Direction.Down => (1, 0),
+            Direction.Left => (0, -1),
+            Direction.Right => (0, 1),
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+        };
     }
+
+    public static Direction Opposite(Direction direction)
+    {
+        return direction switch
+        {
+            Direction.Up => Direction.Down,
+            Direction.Down => Direction.Up,
+            Direction.Left => Direction.Right,
+            Direction.Right => Direction.Left,
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+        };
+    }
+}
+
+public class CrucibleDescriptor(int[][] field) : IVertexDescriptor<CrucibleStep>
+{
+    
+
     public IEnumerable<CrucibleStep> GetNeighbours(CrucibleStep input)
     {
-        var oppositeOfCurrent = Opposite(input.Direction);
-        foreach (var direction in directions)
+        var oppositeOfCurrent = DirectionHelpers.Opposite(input.Direction);
+        foreach (var direction in DirectionHelpers.Directions)
         {
             if (direction == oppositeOfCurrent) continue;
 
@@ -84,7 +119,7 @@ public class CrucibleDescriptor : IVertexDescriptor<CrucibleStep>
             {
                 continue;
             }
-            var step = GetStep(direction);
+            var step = DirectionHelpers.GetStep(direction);
             var newRow = input.Row + step.Item1;
             var newCol = input.Col + step.Item2;
             if (0 <= newRow && newRow <= MaxRow && 0 <= newCol && newCol <= MaxCol)
@@ -97,7 +132,7 @@ public class CrucibleDescriptor : IVertexDescriptor<CrucibleStep>
 
     public int GetCost(CrucibleStep input)
     {
-        return _field[input.Row][input.Col];
+        return field[input.Row][input.Col];
     }
 
     public bool IsDestination(CrucibleStep input)
@@ -105,32 +140,10 @@ public class CrucibleDescriptor : IVertexDescriptor<CrucibleStep>
         return input.Row == MaxRow && input.Col == MaxCol;
     }
 
-    private int MaxRow => _field.Length - 1;
-    private int MaxCol => _field[0].Length - 1;
+    private int MaxRow => field.Length - 1;
+    private int MaxCol => field[0].Length - 1;
 
-    private (int, int) GetStep(Direction direction)
-    {
-        return direction switch
-        {
-            Direction.Up => (-1, 0),
-            Direction.Down => (1, 0),
-            Direction.Left => (0, -1),
-            Direction.Right => (0, 1),
-            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
-        };
-    }
-
-    private Direction Opposite(Direction direction)
-    {
-        return direction switch
-        {
-            Direction.Up => Direction.Down,
-            Direction.Down => Direction.Up,
-            Direction.Left => Direction.Right,
-            Direction.Right => Direction.Left,
-            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
-        };
-    }
+    
 }
 
 public class CostComparer<T> : IComparer<T>
