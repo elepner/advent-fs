@@ -1,31 +1,37 @@
-﻿using System.Runtime.InteropServices.ComTypes;
-
+﻿
 namespace Day18;
 
 public static class Solution
 {
 
-    public static IEnumerable<(Direction, int)> ParseInputPt2(string input)
+    public static IEnumerable<(Direction, long)> ParseInputPt2(string input)
     {
         return input.Trim().Split("\n").Select(x =>
         {
             var splitted = x.Trim().Split(" ");
-            return (DirectionHelpers.DirectionsMap[splitted[0]], int.Parse(splitted[1]));
+            //var hash = splitted[2].Where(c => Char.IsNumber(c)).ToArray();
+            var res = splitted[2][2..^1];
+            
+            return ((Direction)long.Parse(res.Last().ToString()), Convert.ToInt64(res[..^1], 16));
         });
     }
 
-    public static IEnumerable<(Direction, int)> ParseInput(string input)
+    public static IEnumerable<(Direction, long)> ParseInput(string input)
     {
         return input.Trim().Split("\n").Select(x =>
         {
             var splitted = x.Trim().Split(" ");
-            return (DirectionHelpers.DirectionsMap[splitted[0]], int.Parse(splitted[1]));
+            return (DirectionHelpers.DirectionsMap[splitted[0]], long.Parse(splitted[1]));
         });
     }
-    public static int Solve(string input)
+    public static long Solve(string input, Func<string, IEnumerable<(Direction, long)>>? parser = null)
     {
-        var parsed = ParseInput(input).ToArray();
-        List<(int, int)> Points = new List<(int, int)>(parsed.Length + 1)
+        if (parser == null)
+        {
+            parser = ParseInput;
+        }
+        var parsed = parser(input).ToArray();
+        List<(long, long)> Points = new List<(long, long)>(parsed.Length + 1)
         {
             (0, 0)
         };
@@ -38,7 +44,7 @@ public static class Solution
 
         Points.Add((0, 0));
         var zipped = Points.Zip(Points.Skip(1)).ToArray();
-        var shoelace = zipped.Aggregate(0, (acc, curr) =>
+        var shoelace = zipped.Aggregate(0L, (acc, curr) =>
         {
             var (x1, y1) = curr.First;
             var (x2, y2) = curr.Second;

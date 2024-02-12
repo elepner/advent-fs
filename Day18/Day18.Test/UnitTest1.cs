@@ -11,10 +11,8 @@ public class UnitTest1
     {
         _testOutputHelper = testOutputHelper;
     }
-    [Fact]
-    public void Test1()
-    {
-        string input = """ 
+
+    string input = """ 
             R 6 (#70c710)
             D 5 (#0dc571)
             L 2 (#5713f0)
@@ -30,10 +28,20 @@ public class UnitTest1
             L 2 (#015232)
             U 2 (#7a21e3)
             """;
+
+    [Fact]
+    public void Test1()
+    {
+        
         Assert.Equal(62, Solution.Solve(input));
 
     }
 
+    [Fact]
+    public void Test2()
+    {
+        Assert.Equal(952408144115, Solution.Solve(input, Solution.ParseInputPt2));
+    }
 }
 
 public record TestRecord(string Value);
